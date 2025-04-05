@@ -3,8 +3,8 @@ from pydantic import BaseModel, validator
 class UserCreate(BaseModel):
     username: str
     email: str
-    password_hash: str
-    role: str
+    password: str
+    created_at: str
 
 class FunctionCreate(BaseModel):
     name: str

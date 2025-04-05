@@ -1,9 +1,12 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from .database import engine, SessionLocal
-from .models import Base, Function
-from .schemas import FunctionCreate
-from .crud import create_function, get_function, get_functions, update_function, delete_function
+from .models import Base, Function, User
+from .schemas import FunctionCreate, UserCreate
+from .crud import (
+    create_function, get_function, get_functions, update_function, delete_function,
+    create_user, get_user, get_users, delete_user
+)
 
 # Create FastAPI app
 app = FastAPI()
@@ -62,3 +65,33 @@ def delete_function_endpoint(function_id: int, db: Session = Depends(get_db)):
     if not deleted:
         raise HTTPException(status_code=404, detail="Function not found")
     return {"message": "Function deleted successfully"}
+
+# ============================
+# ✅ USER ROUTES START HERE
+# ============================
+
+# Create a User
+@app.post("/users/", response_model=UserCreate)
+def create_user_endpoint(user: UserCreate, db: Session = Depends(get_db)):
+    return create_user(db, user)
+
+# Get All Users
+@app.get("/users/")
+def get_all_users_endpoint(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    return get_users(db, skip=skip, limit=limit)
+
+# Get User by ID
+@app.get("/users/{user_id}")
+def get_user_endpoint(user_id: int, db: Session = Depends(get_db)):
+    user = get_user(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+# Delete a User
+@app.delete("/users/{user_id}")
+def delete_user_endpoint(user_id: int, db: Session = Depends(get_db)):
+    deleted = delete_user(db, user_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"message": "User deleted successfully"}
