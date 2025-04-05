@@ -14,6 +14,26 @@ def is_docker_running() -> bool:
         return False
 
 
+def build_docker_image(runtime: str) -> None:
+    if runtime == "python":
+        image = "lambda-python"
+        dockerfile_path = "lambda-serverless-backend/functions/python"
+    elif runtime == "javascript":
+        image = "lambda-js"
+        dockerfile_path = "lambda-serverless-backend/functions/javascript"
+    else:
+        raise ValueError("Unsupported runtime")
+
+    print(f"Building Docker image for {runtime}...")
+    try:
+        subprocess.run([
+            "sudo", "docker", "build", "-t", image, dockerfile_path
+        ], check=True)
+        print(f"Image {image} built successfully!")
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to build Docker image {image}. Error:\n{e}")
+
+
 def run_function_docker(runtime: str, function_file_path: str, timeout: int = 5) -> bool:
     container_name = f"lambda-{uuid.uuid4()}"
 
@@ -75,11 +95,13 @@ if __name__ == "__main__":
     print("\n======================")
     print("Testing Python Function")
     print("======================")
+    build_docker_image("python")
     run_function_docker("python", "lambda-serverless-backend/functions/python/function.py")
 
     print("\n==========================")
     print("Testing JavaScript Function")
     print("==========================")
+    build_docker_image("javascript")
     run_function_docker("javascript", "lambda-serverless-backend/functions/javascript/function.js")
 
     print("\n==========================")
